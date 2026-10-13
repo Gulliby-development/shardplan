@@ -44,7 +44,7 @@ No runnable jar is needed. The examples below write `shardplan` for
 ```
 usage: shardplan plan --shards N [--files LIST] TIMINGS
        shardplan list --shards N --index K [--files LIST] TIMINGS
-       shardplan need --target SECONDS [--files LIST] TIMINGS
+       shardplan need --target SECONDS [--max-shards N] [--files LIST] TIMINGS
 ```
 
 TIMINGS is the path of the timings file, or `-` for standard input. LIST is
@@ -107,6 +107,19 @@ shards needed: 3 (longest 42.500 s)
 
 (One shard would take 100.850 s and two shards 51.600 s.) The shard count that
 `need` tries goes from 1 to the smaller of 64 and the number of files.
+
+With `--max-shards N` (a number from 1 to 64) `need` tries at most N shards, for
+a CI matrix that has only N jobs. `shardplan need --target 45 --max-shards 3
+timings.txt` still prints `shards needed: 3 (longest 42.500 s)`, but with
+`--max-shards 2` nothing is printed on standard output, the exit code is 1 and
+standard error holds:
+
+```
+shardplan: the target 45.000 s needs more than 2 shards
+```
+
+Without the option the limit is 64, and the message for it is unchanged. Only
+`need` takes `--max-shards`.
 
 When no plan reaches the target, nothing is printed on standard output, one line
 goes to standard error and the exit code is 1. `shardplan need --target 30
