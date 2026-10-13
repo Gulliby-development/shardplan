@@ -28,7 +28,7 @@ public final class Cli {
     private static final String USAGE =
             "usage: shardplan plan --shards N [--files LIST] TIMINGS\n"
             + "       shardplan list --shards N --index K [--files LIST] TIMINGS\n"
-            + "       shardplan need --target SECONDS [--files LIST] TIMINGS\n";
+            + "       shardplan need --target SECONDS [--max-shards N] [--files LIST] TIMINGS\n";
 
     private static final String PREFIX = "shardplan: ";
     private static final String STDIN_ARG = "-";
@@ -70,7 +70,7 @@ public final class Cli {
                 }
             }
             if (parsed.command().equals("need")) {
-                return need(entries, parsed.targetMillis(), out, err);
+                return need(entries, parsed.targetMillis(), parsed.maxShards(), out, err);
             }
             List<Model.Shard> shards = Planner.plan(entries, parsed.shards());
             if (parsed.command().equals("list")) {
@@ -167,7 +167,7 @@ public final class Cli {
         return sb.toString();
     }
 
-    private static int need(List<Model.Entry> entries, long targetMillis, PrintStream out, PrintStream err) {
+    private static int need(List<Model.Entry> entries, long targetMillis, int maxShards, PrintStream out, PrintStream err) {
         String target = Seconds.format(targetMillis);
         Model.Entry longestFile = entries.get(0);
         for (Model.Entry entry : entries) {
@@ -184,8 +184,9 @@ public final class Cli {
             return EXIT_NO_PLAN;
         }
         OptionalInt needed = Planner.needed(entries, targetMillis);
-        if (needed.isEmpty()) {
-            err.print(PREFIX + "the target " + target + " s needs more than 64 shards\n");
+        if (needed.isEmpty() || needed.getAsInt() > maxShards) {
+            err.print(PREFIX + "the target " + target + " s needs more than " + maxShards
+                    + (maxShards == 1 ? " shard\n" : " shards\n"));
             return EXIT_NO_PLAN;
         }
         Model.Shard longest = longestShard(Planner.plan(entries, needed.getAsInt()));

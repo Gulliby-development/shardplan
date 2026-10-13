@@ -9,7 +9,7 @@ import java.util.OptionalLong;
  * The parsed command line. Unused numbers are 0; files is null without
  * {@code --files}; timings is the raw TIMINGS argument.
  */
-public record Args(String command, int shards, int index, long targetMillis, String files, String timings) {
+public record Args(String command, int shards, int index, long targetMillis, int maxShards, String files, String timings) {
 
     private static final int MAX_SHARDS = 64;
     private static final int MAX_COUNT_DIGITS = 2;
@@ -22,6 +22,7 @@ public record Args(String command, int shards, int index, long targetMillis, Str
     private static final String SHARDS = "--shards";
     private static final String INDEX = "--index";
     private static final String TARGET = "--target";
+    private static final String MAX_SHARDS_OPTION = "--max-shards";
 
     /**
      * Parses the arguments left to right; every usage error throws
@@ -39,6 +40,7 @@ public record Args(String command, int shards, int index, long targetMillis, Str
         String shardsText = null;
         String indexText = null;
         String targetText = null;
+        String maxShardsText = null;
         List<String> positional = new ArrayList<>();
         for (int i = 1; i < args.length; i++) {
             String arg = args[i];
@@ -48,7 +50,8 @@ public record Args(String command, int shards, int index, long targetMillis, Str
             }
             int eq = arg.indexOf('=');
             String name = eq < 0 ? arg : arg.substring(0, eq);
-            if (!name.equals(FILES) && !name.equals(SHARDS) && !name.equals(INDEX) && !name.equals(TARGET)) {
+            if (!name.equals(FILES) && !name.equals(SHARDS) && !name.equals(INDEX)
+                    && !name.equals(TARGET) && !name.equals(MAX_SHARDS_OPTION)) {
                 throw new IllegalArgumentException("unknown option \"" + arg + "\"");
             }
             if (!takes(command, name)) {
@@ -70,13 +73,16 @@ public record Args(String command, int shards, int index, long targetMillis, Str
                 shardsText = value;
             } else if (name.equals(INDEX)) {
                 indexText = value;
-            } else {
+            } else if (name.equals(TARGET)) {
                 targetText = value;
+            } else {
+                maxShardsText = value;
             }
         }
         int shards = 0;
         int index = 0;
         long targetMillis = 0;
+        int maxShards = 0;
         if (command.equals(NEED)) {
             if (targetText == null) {
                 throw new IllegalArgumentException("--target is required");
@@ -86,6 +92,10 @@ public record Args(String command, int shards, int index, long targetMillis, Str
                 throw new IllegalArgumentException("invalid --target \"" + targetText + "\"");
             }
             targetMillis = target.getAsLong();
+            maxShards = maxShardsText == null ? MAX_SHARDS : count(maxShardsText, MAX_SHARDS);
+            if (maxShards == 0) {
+                throw new IllegalArgumentException("invalid --max-shards \"" + maxShardsText + "\"");
+            }
         } else {
             if (shardsText == null) {
                 throw new IllegalArgumentException("--shards is required");
@@ -111,7 +121,7 @@ public record Args(String command, int shards, int index, long targetMillis, Str
         if (positional.size() > 1) {
             throw new IllegalArgumentException("too many arguments");
         }
-        return new Args(command, shards, index, targetMillis, files, positional.get(0));
+        return new Args(command, shards, index, targetMillis, maxShards, files, positional.get(0));
     }
 
     /** Whether the command takes the option; --files is taken by all three. */
@@ -122,7 +132,7 @@ public record Args(String command, int shards, int index, long targetMillis, Str
         if (name.equals(INDEX)) {
             return command.equals(LIST);
         }
-        if (name.equals(TARGET)) {
+        if (name.equals(TARGET) || name.equals(MAX_SHARDS_OPTION)) {
             return command.equals(NEED);
         }
         return true;
