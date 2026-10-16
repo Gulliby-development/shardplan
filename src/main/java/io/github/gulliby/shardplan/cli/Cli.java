@@ -27,7 +27,7 @@ public final class Cli {
 
     private static final String USAGE =
             "usage: shardplan plan --shards N [--files LIST] TIMINGS\n"
-            + "       shardplan list --shards N --index K [--files LIST] TIMINGS\n"
+            + "       shardplan list --shards N --index K [--null] [--files LIST] TIMINGS\n"
             + "       shardplan need --target SECONDS [--max-shards N] [--files LIST] TIMINGS\n";
 
     private static final String PREFIX = "shardplan: ";
@@ -74,7 +74,7 @@ public final class Cli {
             }
             List<Model.Shard> shards = Planner.plan(entries, parsed.shards());
             if (parsed.command().equals("list")) {
-                out.print(listText(shards.get(parsed.index() - 1)));
+                out.print(listText(shards.get(parsed.index() - 1), parsed.nullSeparated()));
             } else {
                 out.print(planText(shards, summary));
             }
@@ -159,10 +159,11 @@ public final class Cli {
         return sb.toString();
     }
 
-    private static String listText(Model.Shard shard) {
+    private static String listText(Model.Shard shard, boolean nullSeparated) {
         StringBuilder sb = new StringBuilder();
+        char separator = nullSeparated ? '\0' : '\n';
         for (Model.Entry entry : shard.entries()) {
-            sb.append(entry.path()).append('\n');
+            sb.append(entry.path()).append(separator);
         }
         return sb.toString();
     }

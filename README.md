@@ -43,7 +43,7 @@ No runnable jar is needed. The examples below write `shardplan` for
 
 ```
 usage: shardplan plan --shards N [--files LIST] TIMINGS
-       shardplan list --shards N --index K [--files LIST] TIMINGS
+       shardplan list --shards N --index K [--null] [--files LIST] TIMINGS
        shardplan need --target SECONDS [--max-shards N] [--files LIST] TIMINGS
 ```
 
@@ -95,6 +95,10 @@ one per line, and nothing when the shard is empty:
 tests/test_parser.py
 tests/test_utils.py
 ```
+
+With `--null` every path ends with a NUL byte instead of LF, so that a path with
+spaces stays in one piece for `xargs -0`. Only `list` takes `--null`, and it
+takes no value.
 
 ### need
 

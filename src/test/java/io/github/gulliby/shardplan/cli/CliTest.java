@@ -30,7 +30,7 @@ class CliTest {
 
     private static final String USAGE = lines(
             "usage: shardplan plan --shards N [--files LIST] TIMINGS",
-            "       shardplan list --shards N --index K [--files LIST] TIMINGS",
+            "       shardplan list --shards N --index K [--null] [--files LIST] TIMINGS",
             "       shardplan need --target SECONDS [--max-shards N] [--files LIST] TIMINGS");
 
     private static final String TIMINGS = lines(
