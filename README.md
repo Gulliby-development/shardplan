@@ -34,8 +34,10 @@ Then run the program from the project folder:
 java -cp target/classes io.github.gulliby.shardplan.Main plan --shards 3 timings.txt
 ```
 
-No runnable jar is needed. The examples below write `shardplan` for
-`java -cp target/classes io.github.gulliby.shardplan.Main`.
+`mvn package` also builds a runnable jar, so
+`java -jar target/shardplan-0.1.0.jar plan --shards 3 timings.txt` works too, and
+`shardplan --version` prints `shardplan 0.1.0` from the jar (`shardplan dev` when run from
+`target/classes`). The examples below write `shardplan` for either command.
 
 ## Usage
 

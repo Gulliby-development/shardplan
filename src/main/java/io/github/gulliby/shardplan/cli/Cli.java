@@ -40,8 +40,17 @@ public final class Cli {
     private Cli() {
     }
 
+    private static String packageVersion() {
+        String version = Cli.class.getPackage().getImplementationVersion();
+        return version == null ? "dev" : version;
+    }
+
     /** Runs the program and returns its exit code; stdout is written only on success. */
     public static int run(String[] args, InputStream stdin, PrintStream out, PrintStream err) {
+        if (args.length == 1 && "--version".equals(args[0])) {
+            out.print("shardplan " + packageVersion() + "\n");
+            return EXIT_OK;
+        }
         if (args.length == 1 && "--help".equals(args[0])) {
             out.print(USAGE);
             return EXIT_OK;
