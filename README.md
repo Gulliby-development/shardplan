@@ -53,7 +53,8 @@ TIMINGS is the path of the timings file, or `-` for standard input. LIST is
 always a path. An option is written as `--opt VALUE` or `--opt=VALUE`; options
 and TIMINGS may come in any order, and when an option is repeated the last one
 wins. `--shards` and `--index` are numbers from 1 to 64 (`--index` at most the
-shard count); `--target` is a time in seconds greater than 0.
+shard count); `--target` is a time greater than 0 and is written like a time of the
+timings file, so `--target 45`, `--target 45s` and `--target 45000ms` mean the same.
 
 The examples use this file `timings.txt`:
 
@@ -170,6 +171,31 @@ counts the estimated files and the timings that are not in the list. `list` and
 `need` take `--files` in the same way: `shardplan need --target 60.5
 --files=files.txt timings.txt` prints `shards needed: 2 (longest 60.500 s)`.
 
+### Times with a unit
+
+A timings file may use the units that test runners print. With the file
+`timings.txt`:
+
+```
+1500ms tests/test_a.py
+0.5s tests/test_b.py
+2 tests/test_c.py
+```
+
+`shardplan plan --shards 2 timings.txt` prints:
+
+```
+shard 1: 2.000 s, 1 file
+  2.000 tests/test_c.py
+shard 2: 2.000 s, 2 files
+  1.500 tests/test_a.py
+  0.500 tests/test_b.py
+balance: longest 2.000 s (shard 1), shortest 2.000 s (shard 1)
+```
+
+The option `--target` takes a unit in the same way: `shardplan need --target 2500ms
+timings.txt` prints `shards needed: 2 (longest 2.000 s)`.
+
 ### In a CI matrix
 
 Keep `timings.txt` in the repository and give the matrix 4 jobs with the numbers
@@ -189,7 +215,11 @@ line ends; the last line does not need a line end.
   both ends of a line are removed.
 - SECONDS is `N` or `N.F` with 1 to 5 digits before the dot and 1 to 3 digits
   after it: `12`, `0.5`, `3.250`, `99999.999`. Texts such as `.5`, `5.`,
-  `1.2345`, `+1`, `1e3` and `1,5` are not valid. `0` is allowed.
+  `1.2345`, `+1`, `1e3` and `1,5` are not valid. `0` is allowed. A time may
+  carry a unit, as test runners print it: `s` after the number (`12s`, `0.5s`)
+  means the same seconds, and `ms` after a whole number of 1 to 8 digits means
+  milliseconds (`250ms`, `1500ms`, `99999999ms`); `1.5ms`, `1m`, `12S`, `s` and
+  `ms` are not valid.
 - PATH is the rest of the line and may contain spaces (`2 dir with space/b.py`).
   It is taken as it is: no `\` conversion and no normalisation.
 - Blank lines and lines that start with `#` are skipped.

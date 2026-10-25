@@ -7,18 +7,47 @@ public final class Seconds {
 
     private static final int MAX_WHOLE_DIGITS = 5;
     private static final int FRACTION_DIGITS = 3;
+    private static final int MAX_MILLIS_DIGITS = 8;
 
     private Seconds() {
     }
 
     /**
      * Parses {@code N} or {@code N.F} (N 1 to 5 ASCII digits, F 1 to 3 ASCII
-     * digits) into milliseconds; empty when the text is not valid.
+     * digits), each with an optional {@code s} after it, or {@code Nms} (N 1 to
+     * 8 ASCII digits, whole milliseconds), into milliseconds; empty when the
+     * text is not valid.
      */
     public static OptionalLong parse(String text) {
         if (text == null) {
             return OptionalLong.empty();
         }
+        if (text.endsWith("ms")) {
+            return parseMillis(text.substring(0, text.length() - 2));
+        }
+        if (text.endsWith("s")) {
+            return parseSeconds(text.substring(0, text.length() - 1));
+        }
+        return parseSeconds(text);
+    }
+
+    private static OptionalLong parseMillis(String text) {
+        int length = text.length();
+        if (length < 1 || length > MAX_MILLIS_DIGITS) {
+            return OptionalLong.empty();
+        }
+        long millis = 0;
+        for (int i = 0; i < length; i++) {
+            char c = text.charAt(i);
+            if (!isDigit(c)) {
+                return OptionalLong.empty();
+            }
+            millis = millis * 10 + (c - '0');
+        }
+        return OptionalLong.of(millis);
+    }
+
+    private static OptionalLong parseSeconds(String text) {
         int length = text.length();
         int pos = 0;
         long whole = 0;
