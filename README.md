@@ -44,7 +44,7 @@ java -cp target/classes io.github.gulliby.shardplan.Main plan --shards 3 timings
 `shardplan --help` prints:
 
 ```
-usage: shardplan plan --shards N [--files LIST] TIMINGS
+usage: shardplan plan --shards N [--brief] [--files LIST] TIMINGS
        shardplan list --shards N --index K [--null] [--files LIST] TIMINGS
        shardplan need --target SECONDS [--max-shards N] [--files LIST] TIMINGS
 ```
@@ -88,6 +88,21 @@ balance: longest 42.500 s (shard 1), shortest 28.050 s (shard 2)
 
 When there are more shards than files, the extra shards stay empty and are
 printed as `shard 7: 0.000 s, 0 files`.
+
+With `--brief` the file lines are left out and the rest is printed as before: the
+`shard` lines, the `balance` line and, with `--files`, the `estimated` line.
+`shardplan plan --shards 3 --brief timings.txt` prints:
+
+```
+shard 1: 42.500 s, 1 file
+shard 2: 28.050 s, 2 files
+shard 3: 30.300 s, 3 files
+balance: longest 42.500 s (shard 1), shortest 28.050 s (shard 2)
+```
+
+The option is a flag without a value, may stand anywhere among the arguments and may
+be repeated. Only `plan` takes `--brief`; `list` and `need` fail with
+`shardplan: list does not take --brief` and `shardplan: need does not take --brief`.
 
 ### list
 

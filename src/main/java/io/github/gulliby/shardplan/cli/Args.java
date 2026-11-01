@@ -7,10 +7,11 @@ import java.util.OptionalLong;
 
 /**
  * The parsed command line. Unused numbers are 0; files is null without
- * {@code --files}; timings is the raw TIMINGS argument.
+ * {@code --files}; timings is the raw TIMINGS argument; brief is true with
+ * {@code --brief}.
  */
 public record Args(String command, int shards, int index, long targetMillis, int maxShards, String files, String timings,
-        boolean nullSeparated) {
+        boolean nullSeparated, boolean brief) {
 
     private static final int MAX_SHARDS = 64;
     private static final int MAX_COUNT_DIGITS = 2;
@@ -25,6 +26,7 @@ public record Args(String command, int shards, int index, long targetMillis, int
     private static final String TARGET = "--target";
     private static final String MAX_SHARDS_OPTION = "--max-shards";
     private static final String NULL = "--null";
+    private static final String BRIEF = "--brief";
 
     /**
      * Parses the arguments left to right; every usage error throws
@@ -44,6 +46,7 @@ public record Args(String command, int shards, int index, long targetMillis, int
         String targetText = null;
         String maxShardsText = null;
         boolean nullSeparated = false;
+        boolean brief = false;
         List<String> positional = new ArrayList<>();
         for (int i = 1; i < args.length; i++) {
             String arg = args[i];
@@ -52,6 +55,13 @@ public record Args(String command, int shards, int index, long targetMillis, int
                     throw new IllegalArgumentException(command + " does not take " + NULL);
                 }
                 nullSeparated = true;
+                continue;
+            }
+            if (arg.equals(BRIEF)) {
+                if (!command.equals(PLAN)) {
+                    throw new IllegalArgumentException(command + " does not take " + BRIEF);
+                }
+                brief = true;
                 continue;
             }
             if (arg.equals("-") || !arg.startsWith("-")) {
@@ -131,7 +141,7 @@ public record Args(String command, int shards, int index, long targetMillis, int
         if (positional.size() > 1) {
             throw new IllegalArgumentException("too many arguments");
         }
-        return new Args(command, shards, index, targetMillis, maxShards, files, positional.get(0), nullSeparated);
+        return new Args(command, shards, index, targetMillis, maxShards, files, positional.get(0), nullSeparated, brief);
     }
 
     /** Whether the command takes the option; --files is taken by all three. */
