@@ -26,7 +26,7 @@ import java.util.Set;
 public final class Cli {
 
     private static final String USAGE =
-            "usage: shardplan plan --shards N [--files LIST] TIMINGS\n"
+            "usage: shardplan plan --shards N [--brief] [--files LIST] TIMINGS\n"
             + "       shardplan list --shards N --index K [--null] [--files LIST] TIMINGS\n"
             + "       shardplan need --target SECONDS [--max-shards N] [--files LIST] TIMINGS\n";
 
@@ -85,7 +85,7 @@ public final class Cli {
             if (parsed.command().equals("list")) {
                 out.print(listText(shards.get(parsed.index() - 1), parsed.nullSeparated()));
             } else {
-                out.print(planText(shards, summary));
+                out.print(planText(shards, summary, parsed.brief()));
             }
             return EXIT_OK;
         } catch (IllegalArgumentException e) {
@@ -138,7 +138,7 @@ public final class Cli {
         return "estimated: " + estimated + ", ignored: " + ignored + "\n";
     }
 
-    private static String planText(List<Model.Shard> shards, String summary) {
+    private static String planText(List<Model.Shard> shards, String summary, boolean brief) {
         StringBuilder sb = new StringBuilder();
         Model.Shard shortest = shards.get(0);
         for (Model.Shard shard : shards) {
@@ -146,7 +146,7 @@ public final class Cli {
             sb.append("shard ").append(shard.index()).append(": ")
                     .append(Seconds.format(shard.millis())).append(" s, ")
                     .append(count).append(count == 1 ? " file" : " files").append('\n');
-            for (Model.Entry entry : shard.entries()) {
+            for (Model.Entry entry : brief ? List.<Model.Entry>of() : shard.entries()) {
                 sb.append("  ").append(Seconds.format(entry.millis())).append(' ').append(entry.path());
                 if (entry.estimated()) {
                     sb.append(" (estimated)");

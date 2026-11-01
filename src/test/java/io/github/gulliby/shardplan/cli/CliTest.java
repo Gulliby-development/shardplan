@@ -29,7 +29,7 @@ class CliTest {
     private static final String NON_ASCII_PATH = "tests/t\u00ebst_\u00fc.py";
 
     private static final String USAGE = lines(
-            "usage: shardplan plan --shards N [--files LIST] TIMINGS",
+            "usage: shardplan plan --shards N [--brief] [--files LIST] TIMINGS",
             "       shardplan list --shards N --index K [--null] [--files LIST] TIMINGS",
             "       shardplan need --target SECONDS [--max-shards N] [--files LIST] TIMINGS");
 
